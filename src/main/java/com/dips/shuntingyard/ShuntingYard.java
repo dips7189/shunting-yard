@@ -33,34 +33,23 @@ public class ShuntingYard {
 
         for (String token : tokens) {
 
-            //if the token is a number
             if (isRealNumber(token)) outputQueue.add(token);
 
-            //if the token is a function
             if (isFunction(token)) functionStack.push(token);
 
             //if the token is a function argument separator --LEFT OUT
 
-            //if the token is an operator
             if (isOperator(token)) {
                 Iterator<String> iter = functionStack.iterator();
                 while (iter.hasNext()) {
-
-                    if (isLeftParentheses(functionStack.peek())) {
+                    if (!isOperator(functionStack.peek())) {
                         functionStack.push(token);
                         break;
-                    } else if (isFunction(functionStack.peek())) {
-                        functionStack.push(token);
-                        break;
-                    } else if (isOperator(functionStack.peek()) &&
-                        (getAssociativity(token) == getLeftAssociativity() && getPrecedence(token) <= getPrecedence(functionStack.peek())) ||
-                        getPrecedence(token) < getPrecedence(functionStack.peek())) {
+                    } else if ((getAssociativity(token) == getLeftAssociativity()
+                        && getPrecedence(token) <= getPrecedence(functionStack.peek()))
+                        || getPrecedence(token) < getPrecedence(functionStack.peek())) {
 
-                        //pop the operator from the function stack and add it to the output queue
                         outputQueue.add(functionStack.pop());
-                        functionStack.push(token);
-                        break;
-                    } else {
                         functionStack.push(token);
                         break;
                     }
@@ -70,28 +59,22 @@ public class ShuntingYard {
 
             }
 
-            //if the token is a left parentheses
             if (isLeftParentheses(token)) functionStack.push(token);
 
-            //if the token is a right parentheses
             if (isRightParentheses(token)) {
                 Iterator<String> iter = functionStack.iterator();
                 int numLeftParenthesesFunctions = 0;
                 while (iter.hasNext()) {
-                    //operators off the stack on to the output queue
-                    if (isOperator(functionStack.peek())) {
+                    if (!isLeftParentheses(functionStack.peek())) {
                         outputQueue.add(functionStack.pop());
-                        //functions off the stack on to the output queue
-                    } else if (isFunction(functionStack.peek())) {
-                        outputQueue.add(functionStack.pop());
-                        //left parentheses off the stack
+
                     } else if (isLeftParentheses(functionStack.peek())) {
                         numLeftParenthesesFunctions++;
                         functionStack.pop();
                         break;
                     }
                 }
-                //if no left parentheses were found then there are mismatched parentheses
+
                 if (numLeftParenthesesFunctions == 0) {
                     throw new MismatchedParenthesesException(MISMATCHED_PARENTHESES_MSG);
                 }
@@ -100,8 +83,6 @@ public class ShuntingYard {
 
         //when there are no more tokens to be read i.e. when we exit the loop
         while (!functionStack.isEmpty()) {
-
-            //if there is a parentheses or a function then there is a parentheses/function mismatch
             if (isLeftParentheses(functionStack.peek()) || isRightParentheses(functionStack.peek())) {
                 throw new MismatchedParenthesesException(MISMATCHED_PARENTHESES_MSG);
             } else if (isOperator(functionStack.peek()) || isFunction(functionStack.peek())) {
